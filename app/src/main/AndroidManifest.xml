@@ -28,6 +28,9 @@
         <activity
             android:name=".MyplaylistsActivity"
             android:label="Myplaylists"/>
+        <activity
+            android:name=".PlaylistActivity"
+            android:label="Playlist"/>
     </application>
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />

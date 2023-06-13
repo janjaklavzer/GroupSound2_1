@@ -25,13 +25,16 @@ import com.google.zxing.qrcode.QRCodeWriter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class PlaylistsAdapter extends ArrayAdapter<String> {
-
-
+    
     private ArrayList<String> playlistItems;
     private MyplaylistsActivity activity;
+
+
+
 
     public PlaylistsAdapter(MyplaylistsActivity activity, ArrayList<String> playlistItems) {
         super(activity, 0, playlistItems);

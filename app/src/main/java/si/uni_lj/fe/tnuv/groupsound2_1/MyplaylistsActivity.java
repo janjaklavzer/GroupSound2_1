@@ -24,6 +24,8 @@ import android.util.Log;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.ActivityOptionsCompat;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.zxing.BarcodeFormat;
@@ -78,9 +80,9 @@ public class MyplaylistsActivity extends AppCompatActivity {
 
                 String playlistName = parent.getItemAtPosition(position).toString();
 
-                Intent intent = new Intent(MyplaylistsActivity.this, PlaylistActivity.class);
-                intent.putExtra("playlistName", playlistName);
-                startActivity(intent);
+                //Intent intent = new Intent(MyplaylistsActivity.this, PlaylistActivity.class);
+                //intent.putExtra("playlistName", playlistName);
+                //tartActivityForResult(intent, 1);
 
 
             }
@@ -189,7 +191,7 @@ public class MyplaylistsActivity extends AppCompatActivity {
 
 
         // Define the options list
-        final String[] options = {"Delete Playlist", "Create QR Code"};
+        final String[] options = {"Edit Playlist","Delete Playlist", "Create QR Code"};
 
         // Set the options list as the dialog items
         builder.setItems(options, new DialogInterface.OnClickListener() {
@@ -209,6 +211,9 @@ public class MyplaylistsActivity extends AppCompatActivity {
 
 
         switch (option) {
+            case "Edit Playlist":
+                editPlaylist(playlistName);
+                break;
             case "Delete Playlist":
                 deletePlaylist(playlistName);
                 break;
@@ -216,6 +221,18 @@ public class MyplaylistsActivity extends AppCompatActivity {
                 generateQRCode(playlistName);
                 break;
         }
+    }
+
+    public void editPlaylist(String playlistName) {
+        Intent intent = new Intent(MyplaylistsActivity.this, PlaylistActivity.class);
+        intent.putExtra("playlistName", playlistName);
+        ActivityCompat.startActivityForResult(
+                MyplaylistsActivity.this,
+                intent,
+                1,
+                ActivityOptionsCompat.makeSceneTransitionAnimation(MyplaylistsActivity.this).toBundle()
+        );
+
     }
 
     public void deletePlaylist(String playlistName) {
