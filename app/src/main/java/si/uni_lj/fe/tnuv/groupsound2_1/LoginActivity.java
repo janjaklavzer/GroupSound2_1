@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -15,6 +16,8 @@ public class LoginActivity extends AppCompatActivity {
     private Button buttonLogin;
 
     private UserDatabase userDatabase;
+
+    private String loggedInUsername;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,8 +39,14 @@ public class LoginActivity extends AppCompatActivity {
 
                 // Check if the credentials are valid
                 if (userDatabase.isValidCredentials(username, password)) {
+
+                    // Store the logged-in username
+                    loggedInUsername = username;
+
+
                     // Successful login, proceed to the main activity
                     Intent intent = new Intent(LoginActivity.this, MyplaylistsActivity.class);
+                    intent.putExtra("loggedInUsername", loggedInUsername);
                     startActivity(intent);
                     // Show a success message
                     Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();

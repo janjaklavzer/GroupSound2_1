@@ -31,4 +31,6 @@ public class UserDatabase {
         String savedPassword = sharedPreferences.getString(KEY_PASSWORD_PREFIX + username, null);
         return savedPassword != null && savedPassword.equals(password);
     }
+
+
 }

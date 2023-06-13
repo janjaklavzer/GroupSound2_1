@@ -20,6 +20,7 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.util.Log;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -57,8 +58,14 @@ public class MyplaylistsActivity extends AppCompatActivity {
         playlistAdapter = new PlaylistsAdapter(this, playlistItems);
         listViewPlaylists.setAdapter(playlistAdapter);
 
+        Intent intent = getIntent();
+        String loggedInUsername = intent.getStringExtra("loggedInUsername");
+        Log.d("LoginActivity", "Logged-in Username: " + loggedInUsername);
+
+
+
         // Load playlists from the database
-        loadPlaylistsFromDatabase();
+        loadPlaylistsFromDatabase(loggedInUsername);
 
         // Handle playlist item click events
         listViewPlaylists.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -77,7 +84,7 @@ public class MyplaylistsActivity extends AppCompatActivity {
         addPlaylist.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showAddPlaylistDialog();
+                showAddPlaylistDialog(loggedInUsername);
             }
         });
 
@@ -88,7 +95,7 @@ public class MyplaylistsActivity extends AppCompatActivity {
 
 
 
-    private void addNewPlaylist(String playlistName) {
+    private void addNewPlaylist(String playlistName, String userAccount) {
 
         // Check if the playlist already exists
         if (playlistItems.contains(playlistName)) {
@@ -115,6 +122,9 @@ public class MyplaylistsActivity extends AppCompatActivity {
         // Create a ContentValues object to store the playlist data
         ContentValues values = new ContentValues();
         values.put(PlaylistDatabaseHelper.COLUMN_PLAYLIST_NAME, playlistName);
+        values.put(PlaylistDatabaseHelper.COLUMN_USER_ACCOUNT, userAccount);
+
+        Log.d("values", "COLUMN_PLAYLIST_NAME,COLUMN_USER_ACCOUNT " + values);
 
         // Insert the playlist into the database
         long playlistId = db.insert(PlaylistDatabaseHelper.TABLE_PLAYLISTS, null, values);
@@ -129,7 +139,7 @@ public class MyplaylistsActivity extends AppCompatActivity {
 
     }
 
-    private void showAddPlaylistDialog() {
+    private void showAddPlaylistDialog(String UserAccount) {
         // Create an AlertDialog builder
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
@@ -149,7 +159,7 @@ public class MyplaylistsActivity extends AppCompatActivity {
             // Check if the playlist name is empty
             if (!playlistName.isEmpty()) {
                 // Add the new playlist to the list
-                addNewPlaylist(playlistName);
+                addNewPlaylist(playlistName,UserAccount);
                 //Toast.makeText(MyplaylistsActivity.this, "New playlist added: " + playlistName, Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(MyplaylistsActivity.this, "Playlist name cannot be empty", Toast.LENGTH_SHORT).show();
@@ -292,16 +302,20 @@ public class MyplaylistsActivity extends AppCompatActivity {
 
 
 
-    private void loadPlaylistsFromDatabase() {
+    private void loadPlaylistsFromDatabase(String userAccount) {
         PlaylistDatabaseHelper databaseHelper = new PlaylistDatabaseHelper(this);
         SQLiteDatabase db = databaseHelper.getReadableDatabase();
 
         String[] projection = {PlaylistDatabaseHelper.COLUMN_PLAYLIST_NAME};
+        String selection = PlaylistDatabaseHelper.COLUMN_USER_ACCOUNT + " = ?";
+        String[] selectionArgs = {userAccount};
+
 
         Cursor cursor = db.query(
                 PlaylistDatabaseHelper.TABLE_PLAYLISTS,
                 projection,
-                null,
+                selection,
+                selectionArgs,
                 null,
                 null,
                 null,
@@ -309,6 +323,7 @@ public class MyplaylistsActivity extends AppCompatActivity {
         );
 
         if (cursor != null && cursor.moveToFirst()) {
+            playlistItems.clear(); // Clear the existing playlist items
             do {
                 String playlistName = cursor.getString(cursor.getColumnIndexOrThrow(PlaylistDatabaseHelper.COLUMN_PLAYLIST_NAME));
                 playlistItems.add(playlistName);

@@ -8,8 +8,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class PlaylistDatabaseHelper extends SQLiteOpenHelper{
     public static final String TABLE_PLAYLISTS = "playlists";
     public static final String COLUMN_PLAYLIST_NAME = "playlist_name";
+    public static final String COLUMN_USER_ACCOUNT = "user_account";
     private static final String DATABASE_NAME = "playlist.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
     private static final String COLUMN_ID = "_id";
 
 
@@ -21,16 +22,20 @@ public class PlaylistDatabaseHelper extends SQLiteOpenHelper{
     @Override
     public void onCreate(SQLiteDatabase db) {
         // Create the playlists table
-        String createTableQuery = "CREATE TABLE " + TABLE_PLAYLISTS + "(" +
-                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                COLUMN_PLAYLIST_NAME + " TEXT" +
-                ")";
+        String createTableQuery = "CREATE TABLE " + TABLE_PLAYLISTS + " (" +
+                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_USER_ACCOUNT + " TEXT, " +
+                COLUMN_PLAYLIST_NAME + " TEXT)";
         db.execSQL(createTableQuery);
 
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        if (oldVersion < 3) {
+            // Perform necessary modifications for version 3
+            db.execSQL("ALTER TABLE " + TABLE_PLAYLISTS + " ADD COLUMN " + COLUMN_USER_ACCOUNT + " TEXT");
+        }
 
     }
 
