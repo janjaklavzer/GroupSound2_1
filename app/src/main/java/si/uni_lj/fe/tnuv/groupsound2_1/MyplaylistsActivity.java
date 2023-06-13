@@ -74,7 +74,14 @@ public class MyplaylistsActivity extends AppCompatActivity {
                 // Handle playlist item click
                 String selectedPlaylist = playlistItems.get(position);
                 Toast.makeText(MyplaylistsActivity.this, "Selected Playlist: " + selectedPlaylist, Toast.LENGTH_SHORT).show();
-                showPlaylistOptions(selectedPlaylist);
+
+
+                String playlistName = parent.getItemAtPosition(position).toString();
+
+                Intent intent = new Intent(MyplaylistsActivity.this, PlaylistActivity.class);
+                intent.putExtra("playlistName", playlistName);
+                startActivity(intent);
+
 
             }
         });
