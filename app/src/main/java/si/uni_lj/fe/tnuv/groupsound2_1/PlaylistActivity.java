@@ -1,6 +1,7 @@
 package si.uni_lj.fe.tnuv.groupsound2_1;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -49,10 +50,14 @@ public class PlaylistActivity extends AppCompatActivity{
         UserDatabase userDatabase = new UserDatabase(this);
 
         // Retrieve the logged-in user's information
-        SharedPreferences sharedPreferences = getSharedPreferences("user_database", MODE_PRIVATE);
+
+        // Retrieve the username from SharedPreferences
+        SharedPreferences sharedPreferences = getSharedPreferences("user_database", Context.MODE_PRIVATE);
         String loggedInUsername = sharedPreferences.getString("logged_in_username", null);
+
         if (loggedInUsername != null) {
             String loggedInUser = userDatabase.getUser(loggedInUsername);
+            Log.d("values", "User" + loggedInUsername);
             loadSongsFromDatabase(loggedInUser, playlistName);
             } else {
                 // Handle case when user is not found
@@ -66,7 +71,7 @@ public class PlaylistActivity extends AppCompatActivity{
         addSong.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showSongDialog(playlistName);
+                showSongDialog(loggedInUsername);
             }
         });
 
@@ -94,6 +99,8 @@ public class PlaylistActivity extends AppCompatActivity{
 
         // Get a writable database
         SQLiteDatabase db = databaseHelper.getWritableDatabase();
+
+        Log.d("values", "COLUMN_USER_ACCOUNT " + userAccount);
 
         // Create a ContentValues object to store the playlist data
         ContentValues values = new ContentValues();

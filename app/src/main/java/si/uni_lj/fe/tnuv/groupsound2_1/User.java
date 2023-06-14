@@ -1,5 +1,7 @@
 package si.uni_lj.fe.tnuv.groupsound2_1;
 
+import android.content.SharedPreferences;
+
 public class User {
 
     private String username;
@@ -10,6 +12,7 @@ public class User {
         this.username = username;
         this.password = password;
     }
+
 
     // Getters and setters
     public String getUsername() {

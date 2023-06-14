@@ -9,6 +9,8 @@ public class UserDatabase {
     private static final String KEY_USERNAME_PREFIX = "username_";
     private static final String KEY_PASSWORD_PREFIX = "password_";
 
+
+
     public UserDatabase(Context context) {
         sharedPreferences = context.getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE);
     }

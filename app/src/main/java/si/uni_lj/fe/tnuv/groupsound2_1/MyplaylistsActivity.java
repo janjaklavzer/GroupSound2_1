@@ -3,8 +3,10 @@ package si.uni_lj.fe.tnuv.groupsound2_1;
 
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -132,6 +134,15 @@ public class MyplaylistsActivity extends AppCompatActivity {
         ContentValues values = new ContentValues();
         values.put(PlaylistDatabaseHelper.COLUMN_PLAYLIST_NAME, playlistName);
         values.put(PlaylistDatabaseHelper.COLUMN_USER_ACCOUNT, userAccount);
+
+
+        // Store the username in SharedPreferences
+        SharedPreferences sharedPreferences = getSharedPreferences("user_database", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("logged_in_username", userAccount);
+        editor.apply();
+
+
 
         Log.d("values", "COLUMN_PLAYLIST_NAME,COLUMN_USER_ACCOUNT " + values);
 
