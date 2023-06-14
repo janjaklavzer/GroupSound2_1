@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 public class PlaylistsAdapter extends ArrayAdapter<String> {
-    
+
     private ArrayList<String> playlistItems;
     private MyplaylistsActivity activity;
 
@@ -61,6 +61,8 @@ public class PlaylistsAdapter extends ArrayAdapter<String> {
 
         // Set click listener for btnSettings
         holder.btnSettings.setOnClickListener(new View.OnClickListener() {
+
+
             @Override
             public void onClick(View v) {
                 activity.showPlaylistOptions(playlistName);

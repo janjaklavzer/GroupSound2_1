@@ -185,6 +185,7 @@ public class MyplaylistsActivity extends AppCompatActivity {
 
     public void showPlaylistOptions(String playlistName) {
 
+
         // Create an AlertDialog builder
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Playlist Options");

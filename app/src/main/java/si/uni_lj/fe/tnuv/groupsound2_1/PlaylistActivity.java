@@ -1,6 +1,7 @@
 package si.uni_lj.fe.tnuv.groupsound2_1;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
@@ -43,6 +44,14 @@ public class PlaylistActivity extends AppCompatActivity{
 
         // Get the playlist name from the intent
         playlistName = getIntent().getStringExtra("playlistName");
+
+        User userActivity = new User();
+
+        String loggedInUsername = userActivity.getUsername();
+
+        Log.d("values", "COLUMN_USER_ACCOUNT " + loggedInUsername);
+
+        loadSongsFromDatabase(loggedInUsername, playlistName);
 
 
         // add button
@@ -131,6 +140,40 @@ public class PlaylistActivity extends AppCompatActivity{
         // Create and show the dialog
         AlertDialog dialog = builder.create();
         dialog.show();
+    }
+
+    private void loadSongsFromDatabase(String userAccount, String playlistName) {
+        PlaylistDatabaseHelper databaseHelper = new PlaylistDatabaseHelper(this);
+        SQLiteDatabase db = databaseHelper.getReadableDatabase();
+
+        String[] projection = {PlaylistDatabaseHelper.COLUMN_SONG_NAME};
+        String selection = PlaylistDatabaseHelper.COLUMN_USER_ACCOUNT + " = ? AND " +
+                            PlaylistDatabaseHelper.COLUMN_PLAYLIST_NAME + " = ?";
+        String[] selectionArgs = {userAccount, playlistName};
+
+
+        Cursor cursor = db.query(
+                PlaylistDatabaseHelper.TABLE_PLAYLISTS,
+                projection,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                null,
+                null
+        );
+
+        if (cursor != null && cursor.moveToFirst()) {
+            songItem.clear(); // Clear the existing song items
+            do {
+                String songName = cursor.getString(cursor.getColumnIndexOrThrow(PlaylistDatabaseHelper.COLUMN_SONG_NAME));
+                songItem.add(songName);
+            } while (cursor.moveToNext());
+
+            cursor.close();
+        }
+
+        db.close();
     }
 
 

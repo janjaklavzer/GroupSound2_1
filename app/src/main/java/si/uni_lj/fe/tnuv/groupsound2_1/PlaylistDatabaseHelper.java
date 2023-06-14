@@ -10,7 +10,7 @@ public class PlaylistDatabaseHelper extends SQLiteOpenHelper{
     public static final String COLUMN_PLAYLIST_NAME = "playlist_name";
     public static final String COLUMN_USER_ACCOUNT = "user_account";
     private static final String DATABASE_NAME = "playlist.db";
-    private static final int DATABASE_VERSION = 5;
+    private static final int DATABASE_VERSION = 10;
     private static final String COLUMN_ID = "_id";
 
     public static final String COLUMN_SONG_NAME = "song_name";
@@ -24,8 +24,9 @@ public class PlaylistDatabaseHelper extends SQLiteOpenHelper{
     @Override
     public void onCreate(SQLiteDatabase db) {
         // Create the playlists table
-        String createTableQuery = "CREATE TABLE " + TABLE_PLAYLISTS + " (" +
+        String createTableQuery = "CREATE TABLE IF NOT EXISTS " + TABLE_PLAYLISTS + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_USER_ACCOUNT + " TEXT, " +
                 COLUMN_PLAYLIST_NAME + " TEXT," +
                 COLUMN_SONG_NAME + " TEXT" +
                 ")";
@@ -35,9 +36,10 @@ public class PlaylistDatabaseHelper extends SQLiteOpenHelper{
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion > newVersion) {
+        if (oldVersion < newVersion) {
             // Perform necessary modifications for version 3
-            db.execSQL("ALTER TABLE " + TABLE_PLAYLISTS );
+            db.execSQL("ALTER TABLE " + TABLE_PLAYLISTS +
+                    " ADD COLUMN " + COLUMN_SONG_NAME + " TEXT");
 
             onCreate(db);
         }
