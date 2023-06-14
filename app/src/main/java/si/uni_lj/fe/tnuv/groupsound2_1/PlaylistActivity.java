@@ -1,6 +1,7 @@
 package si.uni_lj.fe.tnuv.groupsound2_1;
 
 import android.content.ContentValues;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -45,13 +46,19 @@ public class PlaylistActivity extends AppCompatActivity{
         // Get the playlist name from the intent
         playlistName = getIntent().getStringExtra("playlistName");
 
-        User userActivity = new User();
+        UserDatabase userDatabase = new UserDatabase(this);
 
-        String loggedInUsername = userActivity.getUsername();
+        // Retrieve the logged-in user's information
+        SharedPreferences sharedPreferences = getSharedPreferences("user_database", MODE_PRIVATE);
+        String loggedInUsername = sharedPreferences.getString("logged_in_username", null);
+        if (loggedInUsername != null) {
+            String loggedInUser = userDatabase.getUser(loggedInUsername);
+            loadSongsFromDatabase(loggedInUser, playlistName);
+            } else {
+                // Handle case when user is not found
+                Log.d("values", "User not found");
+            }
 
-        Log.d("values", "COLUMN_USER_ACCOUNT " + loggedInUsername);
-
-        loadSongsFromDatabase(loggedInUsername, playlistName);
 
 
         // add button
@@ -164,7 +171,7 @@ public class PlaylistActivity extends AppCompatActivity{
         );
 
         if (cursor != null && cursor.moveToFirst()) {
-            songItem.clear(); // Clear the existing song items
+            //songItem.clear(); // Clear the existing song items
             do {
                 String songName = cursor.getString(cursor.getColumnIndexOrThrow(PlaylistDatabaseHelper.COLUMN_SONG_NAME));
                 songItem.add(songName);

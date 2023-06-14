@@ -21,6 +21,10 @@ public class UserDatabase {
         editor.apply();
     }
 
+    public String getUser(String username) {
+        return username;
+    }
+
     // Check if a username already exists in the database
     public boolean isUserExists(String username) {
         return sharedPreferences.contains(KEY_USERNAME_PREFIX + username);
