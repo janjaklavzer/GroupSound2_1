@@ -2,6 +2,7 @@ package si.uni_lj.fe.tnuv.groupsound2_1;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -17,14 +18,18 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.navigation.fragment.NavHostFragment;
 
 import java.util.ArrayList;
 
 public class PlaylistActivity extends AppCompatActivity{
 
-    private ArrayAdapter<String> songAdapter;
+    private SongAdapter songAdapter;
     private ListView listViewPlaylist;
     private ArrayList<String> songItem;
+
+    private String qrCodeValue;
+
 
     private String playlistName;
 
@@ -41,11 +46,14 @@ public class PlaylistActivity extends AppCompatActivity{
         songItem = new ArrayList<>();
 
         // Create the adapter for the playlist rows
-        songAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, songItem);
+        songAdapter = new SongAdapter(this, songItem);
         listViewPlaylist.setAdapter(songAdapter);
 
         // Get the playlist name from the intent
         playlistName = getIntent().getStringExtra("playlistName");
+
+        qrCodeValue = getIntent().getStringExtra("QRcodeValue");
+
 
         UserDatabase userDatabase = new UserDatabase(this);
 
@@ -55,16 +63,8 @@ public class PlaylistActivity extends AppCompatActivity{
         SharedPreferences sharedPreferences = getSharedPreferences("user_database", Context.MODE_PRIVATE);
         String loggedInUsername = sharedPreferences.getString("logged_in_username", null);
 
-        if (loggedInUsername != null) {
-            String loggedInUser = userDatabase.getUser(loggedInUsername);
-            Log.d("values", "User" + loggedInUsername);
-            loadSongsFromDatabase(loggedInUser, playlistName);
-            } else {
-                // Handle case when user is not found
-                Log.d("values", "User not found");
-            }
-
-
+        if (qrCodeValue != null)  playlistName = qrCodeValue;
+        loadSongsFromDatabase(playlistName);
 
         // add button
         ImageButton addSong = findViewById(R.id.addSong);
@@ -77,7 +77,7 @@ public class PlaylistActivity extends AppCompatActivity{
 
     }
 
-    private void addNewSong(String songName,String playlistName, String userAccount) {
+    private void addNewSong(String songName,String playlistName) {
         // Check if the song already exists
         if (songItem.contains(songName)) {
             // Show an error message or handle the duplicate entry as desired
@@ -95,23 +95,20 @@ public class PlaylistActivity extends AppCompatActivity{
         listViewPlaylist.smoothScrollToPosition(songItem.size() - 1);
 
         // Create an instance of the database helper
-        PlaylistDatabaseHelper databaseHelper = new PlaylistDatabaseHelper(this);
+        SongDatabaseHelper databaseHelper = new SongDatabaseHelper(this);
 
         // Get a writable database
         SQLiteDatabase db = databaseHelper.getWritableDatabase();
 
-        Log.d("values", "COLUMN_USER_ACCOUNT " + userAccount);
-
         // Create a ContentValues object to store the playlist data
         ContentValues values = new ContentValues();
-        values.put(PlaylistDatabaseHelper.COLUMN_PLAYLIST_NAME, playlistName);
-        values.put(PlaylistDatabaseHelper.COLUMN_USER_ACCOUNT, userAccount);
-        values.put(PlaylistDatabaseHelper.COLUMN_SONG_NAME, songName);
+        values.put(SongDatabaseHelper.COLUMN_PLAYLIST_ID, playlistName);
+        values.put(SongDatabaseHelper.COLUMN_SONG_NAME, songName);
 
         Log.d("values", "COLUMN_PLAYLIST_NAME,COLUMN_USER_ACCOUNT " + values);
 
         // Insert the playlist into the database
-        long playlistId = db.insert(PlaylistDatabaseHelper.TABLE_PLAYLISTS, null, values);
+        long playlistId = db.insert(SongDatabaseHelper.TABLE_SONGS, null, values);
 
         if (playlistId != -1) {
             // Insertion successful
@@ -142,7 +139,7 @@ public class PlaylistActivity extends AppCompatActivity{
             // Check if the playlist name is empty
             if (!playlistName.isEmpty()) {
                 // Add the new playlist to the list
-                addNewSong(songName,playlistName,UserAccount);
+                addNewSong(songName,playlistName);
                 //Toast.makeText(MyplaylistsActivity.this, "New playlist added: " + playlistName, Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(PlaylistActivity.this, "Song name cannot be empty", Toast.LENGTH_SHORT).show();
@@ -156,18 +153,35 @@ public class PlaylistActivity extends AppCompatActivity{
         dialog.show();
     }
 
-    private void loadSongsFromDatabase(String userAccount, String playlistName) {
-        PlaylistDatabaseHelper databaseHelper = new PlaylistDatabaseHelper(this);
+    public void deleteSong(String songName) {
+        // Remove the playlist from the list
+        songItem.remove(songName);
+
+        // Notify the adapter that the dataset has changed
+        songAdapter.notifyDataSetChanged();
+
+        // Delete the playlist from the database
+        SongDatabaseHelper databaseHelper = new SongDatabaseHelper(this);
+        SQLiteDatabase db = databaseHelper.getWritableDatabase();
+        String whereClause = SongDatabaseHelper.COLUMN_SONG_NAME + " = ?";
+        String[] whereArgs = {songName};
+        db.delete(SongDatabaseHelper.TABLE_SONGS, whereClause, whereArgs);
+        db.close();
+
+        Toast.makeText(PlaylistActivity.this, "Song deleted", Toast.LENGTH_SHORT).show();
+    }
+    private void loadSongsFromDatabase(String playlistId) {
+        Log.d("LOAD SONG", playlistId);
+        SongDatabaseHelper databaseHelper = new SongDatabaseHelper(this);
         SQLiteDatabase db = databaseHelper.getReadableDatabase();
 
-        String[] projection = {PlaylistDatabaseHelper.COLUMN_SONG_NAME};
-        String selection = PlaylistDatabaseHelper.COLUMN_USER_ACCOUNT + " = ? AND " +
-                            PlaylistDatabaseHelper.COLUMN_PLAYLIST_NAME + " = ?";
-        String[] selectionArgs = {userAccount, playlistName};
+        String[] projection = {SongDatabaseHelper.COLUMN_SONG_NAME};
+        String selection = SongDatabaseHelper.COLUMN_PLAYLIST_ID + " = ?";
+        String[] selectionArgs = {playlistId};
 
 
         Cursor cursor = db.query(
-                PlaylistDatabaseHelper.TABLE_PLAYLISTS,
+                SongDatabaseHelper.TABLE_SONGS,
                 projection,
                 selection,
                 selectionArgs,
@@ -180,7 +194,7 @@ public class PlaylistActivity extends AppCompatActivity{
         if (cursor != null && cursor.moveToFirst()) {
             //songItem.clear(); // Clear the existing song items
             do {
-                String songName = cursor.getString(cursor.getColumnIndexOrThrow(PlaylistDatabaseHelper.COLUMN_SONG_NAME));
+                String songName = cursor.getString(cursor.getColumnIndexOrThrow(SongDatabaseHelper.COLUMN_SONG_NAME));
                 songItem.add(songName);
             } while (cursor.moveToNext());
 

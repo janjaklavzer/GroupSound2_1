@@ -55,8 +55,9 @@ public class PlaylistsAdapter extends ArrayAdapter<String> {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
+        final String playlist_uuid = getItem(position);
+        final String playlistName = activity.loadPlaylistFromDatabase(playlist_uuid);
 
-        final String playlistName = getItem(position);
         holder.playlistNameTextView.setText(playlistName);
 
         // Set click listener for btnSettings
@@ -65,7 +66,7 @@ public class PlaylistsAdapter extends ArrayAdapter<String> {
 
             @Override
             public void onClick(View v) {
-                activity.showPlaylistOptions(playlistName);
+                activity.showPlaylistOptions(playlist_uuid);
             }
         });
 

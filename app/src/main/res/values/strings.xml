@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">GroupSound2_1</string>
+    <string name="scan_qr">Scan QR</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="don_t_have_an_account_sign_up">Don\'t have an account? Sign up</string>
+    <string name="title_activity_main2">MainActivity2</string>
+    <string name="title_activity_camera">Camera</string>
 </resources>

@@ -28,6 +28,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.zxing.BarcodeFormat;
@@ -39,6 +40,7 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class MyplaylistsActivity extends AppCompatActivity {
 
@@ -53,6 +55,8 @@ public class MyplaylistsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_myplaylists);
 
+
+
         listViewPlaylists = findViewById(R.id.listViewPlaylists);
 
         // Initialize playlist items
@@ -65,6 +69,8 @@ public class MyplaylistsActivity extends AppCompatActivity {
         Intent intent = getIntent();
         String loggedInUsername = intent.getStringExtra("loggedInUsername");
         Log.d("LoginActivity", "Logged-in Username: " + loggedInUsername);
+
+
 
 
 
@@ -98,7 +104,6 @@ public class MyplaylistsActivity extends AppCompatActivity {
                 showAddPlaylistDialog(loggedInUsername);
             }
         });
-
 
     }
 
@@ -134,6 +139,7 @@ public class MyplaylistsActivity extends AppCompatActivity {
         ContentValues values = new ContentValues();
         values.put(PlaylistDatabaseHelper.COLUMN_PLAYLIST_NAME, playlistName);
         values.put(PlaylistDatabaseHelper.COLUMN_USER_ACCOUNT, userAccount);
+        values.put(PlaylistDatabaseHelper.COLUMN_UUID, UUID.randomUUID().toString());
 
 
         // Store the username in SharedPreferences
@@ -151,11 +157,13 @@ public class MyplaylistsActivity extends AppCompatActivity {
 
         if (playlistId != -1) {
             // Insertion successful
-            Toast.makeText(MyplaylistsActivity.this, "New playlist added: " + playlistName, Toast.LENGTH_SHORT).show();
+            Toast.makeText(MyplaylistsActivity.this, "New playlist added", Toast.LENGTH_SHORT).show();
         }
 
         // Close the database connection
         db.close();
+
+        loadPlaylistsFromDatabase(userAccount);
 
     }
 
@@ -257,17 +265,17 @@ public class MyplaylistsActivity extends AppCompatActivity {
         // Delete the playlist from the database
         PlaylistDatabaseHelper databaseHelper = new PlaylistDatabaseHelper(this);
         SQLiteDatabase db = databaseHelper.getWritableDatabase();
-        String whereClause = PlaylistDatabaseHelper.COLUMN_PLAYLIST_NAME + " = ?";
+        String whereClause = PlaylistDatabaseHelper.COLUMN_UUID + " = ?";
         String[] whereArgs = {playlistName};
         db.delete(PlaylistDatabaseHelper.TABLE_PLAYLISTS, whereClause, whereArgs);
         db.close();
 
-        Toast.makeText(MyplaylistsActivity.this, "Playlist deleted: " + playlistName, Toast.LENGTH_SHORT).show();
+        Toast.makeText(MyplaylistsActivity.this, "Playlist deleted", Toast.LENGTH_SHORT).show();
     }
 
     public void generateQRCode(String playlistName) {
         // Generate the content for the QR code (e.g., playlist URL)
-        String playlistUrl = generatePlaylistUrl(playlistName);
+        //String playlistUrl = generatePlaylistUrl(playlistName);
 
         // Set QR code dimensions
         int width = 500;
@@ -280,7 +288,7 @@ public class MyplaylistsActivity extends AppCompatActivity {
 
             // Generate QR code bitmap
             QRCodeWriter writer = new QRCodeWriter();
-            BitMatrix bitMatrix = writer.encode(playlistUrl, BarcodeFormat.QR_CODE, width, height, hints);
+            BitMatrix bitMatrix = writer.encode(playlistName, BarcodeFormat.QR_CODE, width, height, hints);
             int[] pixels = new int[width * height];
             for (int y = 0; y < height; y++) {
                 int offset = y * width;
@@ -342,7 +350,7 @@ public class MyplaylistsActivity extends AppCompatActivity {
         PlaylistDatabaseHelper databaseHelper = new PlaylistDatabaseHelper(this);
         SQLiteDatabase db = databaseHelper.getReadableDatabase();
 
-        String[] projection = {PlaylistDatabaseHelper.COLUMN_PLAYLIST_NAME};
+        String[] projection = {PlaylistDatabaseHelper.COLUMN_PLAYLIST_NAME, PlaylistDatabaseHelper.COLUMN_UUID};
         String selection = PlaylistDatabaseHelper.COLUMN_USER_ACCOUNT + " = ?";
         String[] selectionArgs = {userAccount};
 
@@ -361,7 +369,7 @@ public class MyplaylistsActivity extends AppCompatActivity {
         if (cursor != null && cursor.moveToFirst()) {
             playlistItems.clear(); // Clear the existing playlist items
             do {
-                String playlistName = cursor.getString(cursor.getColumnIndexOrThrow(PlaylistDatabaseHelper.COLUMN_PLAYLIST_NAME));
+                String playlistName = cursor.getString(cursor.getColumnIndexOrThrow(PlaylistDatabaseHelper.COLUMN_UUID));
                 playlistItems.add(playlistName);
             } while (cursor.moveToNext());
 
@@ -369,6 +377,37 @@ public class MyplaylistsActivity extends AppCompatActivity {
         }
 
         db.close();
+    }
+
+    public String loadPlaylistFromDatabase(String uuid) {
+        PlaylistDatabaseHelper databaseHelper = new PlaylistDatabaseHelper(this);
+        SQLiteDatabase db = databaseHelper.getReadableDatabase();
+
+        String[] projection = {PlaylistDatabaseHelper.COLUMN_PLAYLIST_NAME};
+        String selection = PlaylistDatabaseHelper.COLUMN_UUID + " = ?";
+        String[] selectionArgs = {uuid};
+
+
+        Cursor cursor = db.query(
+                PlaylistDatabaseHelper.TABLE_PLAYLISTS,
+                projection,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                null,
+                null
+        );
+        String playlistName = "";
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                 playlistName = cursor.getString(cursor.getColumnIndexOrThrow(PlaylistDatabaseHelper.COLUMN_PLAYLIST_NAME));
+            } while (cursor.moveToNext());
+
+            cursor.close();
+        }
+        db.close();
+        return playlistName;
     }
 
 
